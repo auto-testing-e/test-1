@@ -28,6 +28,21 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Configure Maven settings for GitHub Packages
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<EOF
+          <settings>
+            <servers>
+              <server>
+                <id>github</id>
+                <username>${{ github.actor }}</username>
+                <password>${{ secrets.GHUSER}}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+
       - name: Deploy to destination org
         run: |
           mvn deploy:deploy-file \
@@ -36,8 +51,6 @@ jobs:
             -Dversion="${{ github.event.inputs.version }}" \
             -Dpackaging=jar \
             -Dfile="files/${{ github.event.inputs.artifact_id }}-${{ github.event.inputs.version }}.jar" \
-            -DpomFile="files/${{ github.event.inputs.artifact_id }}-${{ github.event.inputs.version }}.pom" \
+            -DpomFile="files/pom.xml" \
             -DrepositoryId=github \
-            -Durl="https://maven.pkg.github.com/${{ github.event.inputs.destination_repo }}" \
-            -Dusername="${{ github.actor }}" \
-            -Dpassword="${{ secrets.DEST_GITHUB_TOKEN }}"
+            -Durl="https://maven.pkg.github.com/${{ github.event.inputs.destination_repo }}"
