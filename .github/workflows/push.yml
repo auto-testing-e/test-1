@@ -1,0 +1,43 @@
+name: Push Local Maven Package to Another Org
+
+on:
+  workflow_dispatch:
+    inputs:
+      group_id:
+        description: "Maven groupId"
+        required: true
+      artifact_id:
+        description: "Maven artifactId"
+        required: true
+      version:
+        description: "Maven version"
+        required: true
+      destination_repo:
+        description: "Destination repo (org/repo)"
+        required: true
+
+jobs:
+  push-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java & Maven
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Deploy to destination org
+        run: |
+          mvn deploy:deploy-file \
+            -DgroupId="${{ github.event.inputs.group_id }}" \
+            -DartifactId="${{ github.event.inputs.artifact_id }}" \
+            -Dversion="${{ github.event.inputs.version }}" \
+            -Dpackaging=jar \
+            -Dfile="files/${{ github.event.inputs.artifact_id }}-${{ github.event.inputs.version }}.jar" \
+            -DpomFile="files/${{ github.event.inputs.artifact_id }}-${{ github.event.inputs.version }}.pom" \
+            -DrepositoryId=github \
+            -Durl="https://maven.pkg.github.com/${{ github.event.inputs.destination_repo }}" \
+            -Dusername="${{ github.actor }}" \
+            -Dpassword="${{ secrets.DEST_GITHUB_TOKEN }}"
