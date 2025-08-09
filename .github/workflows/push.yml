@@ -37,7 +37,7 @@ jobs:
               <server>
                 <id>github</id>
                 <username>${{ github.actor }}</username>
-                <password>${{ secrets.GHUSER}}</password>
+                <password>${{ secrets.GHPASS}}</password>
               </server>
             </servers>
           </settings>
